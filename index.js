@@ -3,20 +3,35 @@ const Wallet = require('./Wallet');
 const Transaction = require('./Transaction');
 const Block = require('./Block');
 const Chain = require('./Chain');
-
-let chain = new Chain();
+const http = require('http');
 
 const john = new Wallet();
 const rio = new Wallet();
 
-const transaction1 = john.send(100, rio.publicKey);
-console.log(transaction1);
+const transaction = john.send(100, rio.publicKey);
 
-const block1 = new Block();
-block1.addTransaction(transaction1.transaction, transaction1.signature);
-block1.addTransaction(transaction1.transaction, transaction1.signature);
-block1.addTransaction(transaction1.transaction, transaction1.signature);
-block1.mine();
-chain.addBlock(block1);
+const options = {
+    hostname: 'localhost',
+    port: 300,
+    path: '/send',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': transaction.length
+    }
+  }
+  
+  const req = http.request(options, res => {
+    console.log(`statusCode: ${res.statusCode}`)
+  
+    res.on('data', d => {
+      console.log(d);
+    })
+  });
 
-console.log(chain);
+  req.on('error', error => {
+    console.error(error)
+  })
+  
+  req.write(transaction);
+  req.end();
